@@ -1,8 +1,9 @@
 # Deploying CORAL to Railway
 
-`railway.json` at the repo root is the whole config. Two commands from a clean
-checkout, and the build it requests is the build that was verified on a fresh
-clone (see "What was verified" below).
+`.railway/railway.ts` is the project definition Railway actually applies.
+`railway.json` still records the same build and start commands, but a service
+created now cannot opt into that older file. The build below is the one that
+was verified on a fresh clone (see "What was verified" below).
 
 ## 1. What gets deployed
 
@@ -21,13 +22,14 @@ Railway needs the repo on GitHub first. It already is:
 
 ```bash
 railway login
-railway init --name coral                    # new project
-railway add --service coral -r gogsgo/CORAL --branch main
-railway status                               # confirm repo + URL
+railway init --name coral --workspace "noushingenno-spec's Projects"
+railway config apply --yes
+railway domain --service coral
 ```
 
-Or from the dashboard: **New Project → Deploy from GitHub repo → gogsgo/CORAL**.
-Railway reads `railway.json` and the rest is automatic.
+`railway config apply` creates the `coral` service from `gogsgo/CORAL` on
+`main` and sets the build, start, and healthcheck. A push to `main` redeploys
+that service. Do not also run `railway up`.
 
 ## 3. What `railway.json` does
 

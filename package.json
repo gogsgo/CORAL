@@ -20,6 +20,7 @@
     "mcp": "pnpm --filter @coral/cli exec tsx src/index.ts serve"
   },
   "devDependencies": {
+    "railway": "^3.16.0",
     "turbo": "^2.11.10",
     "typescript": "^5.9.3"
   },
