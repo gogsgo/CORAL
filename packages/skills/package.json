@@ -1,0 +1,26 @@
+{
+  "name": "@coral/skills",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CORAL skills: Robinhood Trading MCP, Robinhood Chain, research. Plus the market data sources they wrap.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@coral/core": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "date-fns": "^4.4.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}

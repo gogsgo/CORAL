@@ -1,0 +1,28 @@
+{
+  "name": "@coral/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CORAL command line: init, connect, status, scan, trade, evolve, history, reef, serve.",
+  "bin": {
+    "coral": "./src/index.ts"
+  },
+  "main": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@coral/core": "workspace:*",
+    "@coral/mcp-connectors": "workspace:*",
+    "@coral/skills": "workspace:*",
+    "commander": "^15.1.0",
+    "date-fns": "^4.4.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}

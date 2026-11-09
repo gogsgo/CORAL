@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+@theme {
+  --color-abyss: #04070a;
+  --color-deep: #070d12;
+  --color-reef: #0c161d;
+  --color-shelf: #12222b;
+  --color-coral: #f2545b;
+  --color-crimson: #d63f52;
+  --color-teal: #35d0ba;
+  --color-lagoon: #1f7f7a;
+  --color-amber: #f2b95e;
+  --color-foam: #eaf2f4;
+  --color-mist: #8fa6b0;
+  --color-silt: #5d7179;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-serif), "Times New Roman", serif;
+  --font-mono: var(--font-mono-jet), ui-monospace, monospace;
+
+  --animate-drift: drift 22s ease-in-out infinite;
+  --animate-pulse-soft: pulse-soft 5s ease-in-out infinite;
+  --animate-grow: grow 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(0, -14px, 0) rotate(1.5deg); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.75; }
+}
+
+@keyframes grow {
+  from { stroke-dashoffset: 900; opacity: 0; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@layer base {
+  * {
+    border-color: color-mix(in oklab, var(--color-shelf) 80%, transparent);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--color-abyss);
+    color: var(--color-foam);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-coral) 35%, transparent);
+    color: var(--color-foam);
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--color-abyss); }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--color-shelf) 90%, white 10%);
+    border-radius: 999px;
+  }
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility text-pretty {
+  text-wrap: pretty;
+}
+
+/* Bioluminescent field: a soft radial that reads as light through water. */
+@utility glow-coral {
+  background-image: radial-gradient(
+    60% 60% at 50% 0%,
+    color-mix(in oklab, var(--color-coral) 22%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+@utility glow-teal {
+  background-image: radial-gradient(
+    50% 50% at 50% 50%,
+    color-mix(in oklab, var(--color-teal) 18%, transparent) 0%,
+    transparent 72%
+  );
+}
+
+/* Hairline that fades at both ends — used as section dividers. */
+@utility rule-fade {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-shelf) 100%, transparent) 20%,
+    color-mix(in oklab, var(--color-shelf) 100%, transparent) 80%,
+    transparent
+  );
+}
+
+@utility grain {
+  position: relative;
+}
+
+@utility card-reef {
+  background: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--color-reef) 90%, transparent),
+    color-mix(in oklab, var(--color-deep) 96%, transparent)
+  );
+  border: 1px solid color-mix(in oklab, var(--color-shelf) 70%, transparent);
+  border-radius: 1rem;
+}
+
+@utility card-reef-hover {
+  transition: border-color 240ms ease, transform 240ms ease, background 240ms ease;
+  &:hover {
+    border-color: color-mix(in oklab, var(--color-coral) 35%, transparent);
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
