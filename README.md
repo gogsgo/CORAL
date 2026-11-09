@@ -149,6 +149,8 @@ Run the dashboard (reads the same SQLite file, no API):
 pnpm web        # http://localhost:3000
 ```
 
+The web app deploys on its own; see [DEPLOY.md](./DEPLOY.md) for Railway.
+
 ---
 
 ## The CLI
