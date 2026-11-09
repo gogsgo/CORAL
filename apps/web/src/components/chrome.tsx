@@ -65,13 +65,9 @@ export function Footer() {
       </div>
 
       <div className="relative mx-auto max-w-[1280px] px-6 pb-10 pt-14 sm:px-10 sm:pt-20">
-        <div className="flex justify-center">
-          <MonogramSeal variant="white" className="h-11 w-11" />
-        </div>
-
-        <div className="mt-10 grid grid-cols-1 gap-10 border-t border-white/25 pt-10 md:grid-cols-12">
+        <div className="grid grid-cols-1 gap-10 border-t border-white/25 pt-10 md:grid-cols-12">
           <div className="md:col-span-5">
-            <StackedWordmark variant="white" size="lg" asLink={false} />
+            <img src="/logo.png" alt="CORAL" className="h-24 w-auto object-contain brightness-0 invert sm:h-28" />
             <p className="mt-5 max-w-[300px] font-serif-editorial text-[13.5px] italic leading-[1.35] text-white/85">
               Growing intelligence, one decision at a time.
             </p>

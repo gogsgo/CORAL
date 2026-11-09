@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-
 /**
  * Global SVG filter. Remaps any copperplate plate so paper clamps to pure
  * white and strokes land on brand cobalt. One filter for the whole page, so
@@ -48,7 +46,7 @@ export function StackedWordmark({
   const tone =
     variant === "white" ? "text-white" : variant === "cobalt" ? "text-cobalt" : "text-ink";
 
-  const parts: ReactNode =
+  const parts =
     size === "lg" ? (
       <>
         <span className="text-[28px] font-normal sm:text-[34px]">CORAL</span>
@@ -80,7 +78,7 @@ export function StackedWordmark({
   );
 }
 
-/** Classical double-ring monogram seal. Used once in the hero, once in the banner. */
+/** Same coral plate, sized for the seal slots beside section titles and in banners. */
 export function MonogramSeal({
   variant = "cobalt",
   className = "h-11 w-11",
@@ -88,39 +86,8 @@ export function MonogramSeal({
   variant?: "cobalt" | "white";
   className?: string;
 }) {
-  const stroke = variant === "white" ? "#FFFFFF" : "#1E32CA";
-  return (
-    <svg viewBox="0 0 64 64" fill="none" className={className} role="img" aria-label="CORAL seal">
-      <circle cx="32" cy="32" r="29.5" stroke={stroke} strokeWidth="1.2" />
-      <circle cx="32" cy="32" r="26.5" stroke={stroke} strokeWidth="0.75" strokeDasharray="2 1.5" />
-      <circle cx="32" cy="32" r="24.2" stroke={stroke} strokeWidth="0.9" />
-      <path
-        d="M39.5 21.5C37.2 18.8 33.8 17.5 29.8 17.5C22.4 17.5 17.2 23.6 17.2 32C17.2 40.4 22.4 46.5 29.8 46.5C34.2 46.5 37.6 44.6 39.8 41.5"
-        stroke={stroke}
-        strokeWidth="1.75"
-        strokeLinecap="round"
-      />
-      <path
-        d="M29.8 19.2C23.8 19.2 19.6 24.6 19.6 32C19.6 39.4 23.8 44.8 29.8 44.8"
-        stroke={stroke}
-        strokeWidth="0.85"
-      />
-      <path d="M39.5 18.5V23.2" stroke={stroke} strokeWidth="1.3" />
-      <path d="M39.8 40.2V44.2" stroke={stroke} strokeWidth="1.3" />
-      <path
-        d="M35.5 16.5C31.5 21.5 30.5 27.5 33.8 32.5C37.1 37.5 36.2 43.2 31.5 47.8"
-        stroke={stroke}
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-      <path d="M33.2 25.5L38.5 21.8M36.2 23.4L39.2 24.5" stroke={stroke} strokeWidth="1.05" strokeLinecap="round" />
-      <path d="M35.4 35.5L41.2 32.2M38.5 33.7L41.5 35.2" stroke={stroke} strokeWidth="1.05" strokeLinecap="round" />
-      <path d="M32.2 29.5L26.8 26.2" stroke={stroke} strokeWidth="1.05" strokeLinecap="round" />
-      <circle cx="38.8" cy="21.5" r="1.1" fill={stroke} />
-      <circle cx="41.5" cy="31.9" r="1.1" fill={stroke} />
-      <circle cx="26.4" cy="25.9" r="1.1" fill={stroke} />
-    </svg>
-  );
+  const plate = variant === "white" ? "brightness-0 invert" : "";
+  return <img src="/logo.png" alt="CORAL" className={`${className} object-contain ${plate}`} />;
 }
 
 /** White coral corner flourish for the cobalt banner. */
