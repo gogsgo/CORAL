@@ -412,17 +412,26 @@ export class CoralEngine {
       if (!entry) continue;
 
       const move = (price - entry) / entry;
-      const pnl = move * 100; // one $100 reference unit; real P&L lives on the ledger
+      // Reference-unit P&L: $100 of exposure. The real money is on the ledger —
+      // this number exists so recall can rank polyps against each other.
+      const pnl = move * 100;
       const decidedAction = polyp.action;
 
       let outcome: "win" | "loss" | "neutral";
       if (decidedAction === "buy") outcome = move > 0.01 ? "win" : move < -0.01 ? "loss" : "neutral";
       else if (decidedAction === "sell") outcome = move < -0.01 ? "win" : move > 0.01 ? "loss" : "neutral";
-      else outcome = Math.abs(move) < 0.01 ? "win" : "neutral"; // holding correctly is a small win
+      else {
+        // A hold has no position, so it realises nothing. Counting "price barely
+        // moved" as a win is how a reef ends up advertising a 100% win rate on
+        // $0.00 of profit — a metric that is arithmetically true and completely
+        // meaningless. Sitting out is neutral, always.
+        outcome = "neutral";
+      }
 
-      this.deps.memory.resolve(polyp.id, outcome, Number(pnl.toFixed(2)));
-      out.push({ polypId: polyp.id, outcome, pnl: Number(pnl.toFixed(2)) });
-      this.emit({ type: "settled", symbol: polyp.symbol, outcome, pnl });
+      const settledPnl = decidedAction === "buy" || decidedAction === "sell" ? Number(pnl.toFixed(2)) : 0;
+      this.deps.memory.resolve(polyp.id, outcome, settledPnl);
+      out.push({ polypId: polyp.id, outcome, pnl: settledPnl });
+      this.emit({ type: "settled", symbol: polyp.symbol, outcome, pnl: settledPnl });
     }
     return out;
   }

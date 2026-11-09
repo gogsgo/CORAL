@@ -314,6 +314,48 @@ test("engine never exceeds the order cap", async () => {
   mem.close();
 });
 
+test("a hold polyp settles neutral, never as a free win", async () => {
+  const mem = new CoralMemory(join(home, "hold.db"));
+  const config = resolveConfig({ home, dbPath: join(home, "hold.db"), mode: "paper", llm: "none" });
+
+  // Flat tape: a hold has nothing to realise, so it must not be scored a win.
+  class FlatSource implements MarketDataSource {
+    readonly name = "flat";
+    async observe(symbols: string[]): Promise<Observation[]> {
+      return symbols.map((symbol) => observation({ symbol, rsi14: 50, momentum20: 0, price: 100 }));
+    }
+    async quote(): Promise<number | null> {
+      return 100;
+    }
+  }
+
+  const engine = new CoralEngine({
+    config,
+    memory: mem,
+    router: new SkillRouter(),
+    risk: new RiskManager(RiskManager.forMode("paper")),
+  });
+  const first = await engine.run({ symbols: ["FLAT"], source: new FlatSource(), maxOrders: 0 });
+  assert.equal(first.decisions[0]!.action, "hold", "flat tape must not trigger a buy");
+
+  mem.db.prepare("UPDATE polyps SET created_at = ?").run(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString());
+
+  const engine2 = new CoralEngine({
+    config,
+    memory: mem,
+    router: new SkillRouter(),
+    risk: new RiskManager(RiskManager.forMode("paper")),
+  });
+  const second = await engine2.run({ symbols: ["FLAT"], source: new FlatSource(), maxOrders: 0 });
+  assert.ok(second.settled.length >= 1, "the hold should settle");
+  assert.ok(
+    second.settled.every((s) => s.outcome === "neutral"),
+    `holds must settle neutral, got ${JSON.stringify(second.settled)}`,
+  );
+  assert.equal(mem.snapshot().wins, 0, "a win rate built on holds should not exist");
+  mem.close();
+});
+
 // ── report ────────────────────────────────────────────────────────────────
 await Promise.all(pending);
 
@@ -324,7 +366,7 @@ for (const r of results) {
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
 
 // SQLite keeps the WAL mapping open on Windows; flush before unlinking.
-for (const db of ["reef.db", "young.db", "evo.db", "engine.db", "cap.db"]) {
+for (const db of ["reef.db", "young.db", "evo.db", "engine.db", "cap.db", "hold.db"]) {
   try {
     const { default: Database } = await import("better-sqlite3");
     const d = new Database(join(home, db));
