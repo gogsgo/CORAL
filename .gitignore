@@ -34,3 +34,6 @@ pnpm-debug.log*
 # test artifacts
 coverage/
 .turbo/
+
+# supplied design reference archive — kept locally, never published
+file tamplate/

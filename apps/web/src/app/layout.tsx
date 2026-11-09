@@ -1,23 +1,35 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Instrument_Serif } from "next/font/google";
+import { Cormorant_Garamond, EB_Garamond, Inter, JetBrains_Mono } from "next/font/google";
+import { CobaltFilterDefs } from "@/components/engraving";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
   variable: "--font-inter",
   display: "swap",
 });
 
-const serif = Instrument_Serif({
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: "400",
-  variable: "--font-serif",
+  weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
   display: "swap",
 });
 
-const mono = JetBrains_Mono({
+const ebGaramond = EB_Garamond({
   subsets: ["latin"],
-  variable: "--font-mono-jet",
+  weight: ["400", "500"],
+  style: ["normal", "italic"],
+  variable: "--font-eb-garamond",
+  display: "swap",
+});
+
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-jetbrains",
   display: "swap",
 });
 
@@ -43,7 +55,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "CORAL — Growing intelligence, one decision at a time",
     description:
-      "A self-evolving AI agent that grows a reef of memory from every decision. Robinhood Trading MCP + Robinhood Chain. Paper trading by default.",
+      "A self-evolving AI agent that grows a reef of memory from every decision. Robinhood Trading MCP and Robinhood Chain. Paper trading by default.",
     type: "website",
     siteName: "CORAL",
   },
@@ -57,8 +69,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${serif.variable} ${mono.variable}`}>
-      <body className="antialiased">{children}</body>
+    <html
+      lang="en"
+      className={`${inter.variable} ${cormorant.variable} ${ebGaramond.variable} ${jetbrains.variable}`}
+    >
+      <body className="bg-white text-ink antialiased">
+        <CobaltFilterDefs />
+        {children}
+      </body>
     </html>
   );
 }

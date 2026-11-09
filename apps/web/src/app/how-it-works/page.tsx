@@ -1,243 +1,220 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Footer, Nav } from "@/components/chrome";
+import { Footer, Header } from "@/components/chrome";
+import { DiagonalArrow, MonogramSeal } from "@/components/engraving";
 
 export const metadata: Metadata = {
   title: "How it works",
   description:
-    "The CORAL lifecycle: observe, recall, reason, gate, settle, calcify. What a polyp is, how recall scores it, and what evolving actually changes.",
+    "The CORAL pass: observe, recall, reason, gate, settle, calcify. What a polyp is, how recall scores it, and what evolving actually changes.",
 };
 
 const STAGES = [
   {
-    id: "observe",
-    title: "Observe",
-    tag: "graph node",
-    body: "Quotes and daily bars come from the Robinhood Trading MCP when a token exists. Without one, CORAL generates a deterministic synthetic series — seeded per symbol, so the same ticker produces the same tape on every run. An observation is labelled with its source and that label travels all the way into the polyp, so a decision made on synthetic data can never be mistaken for a real one.",
+    stage: "Observe",
+    body: "Quotes and daily bars come from the Robinhood Trading MCP when a token exists. Without one, CORAL generates a deterministic synthetic series seeded per symbol, so the same ticker produces the same tape on every run. An observation is labelled with its source and that label travels into the polyp, so a decision made on synthetic data can never be mistaken for a real one.",
     code: `{ symbol: "NVDA", price: 182.44, change24h: 0.011,
   rsi14: 31.2, sma20: 179.8, momentum20: 0.043,
   volatility: 0.024, source: "robinhood-mcp" }`,
   },
   {
-    id: "recall",
-    title: "Recall",
-    tag: "memory",
-    body: "Before reasoning, CORAL asks its own past what resembles this. Recall is a weighted blend — token overlap between the thesis and the query, exponential recency decay (30-day half-life), outcome weight, symbol match, and shared tags. Losses are weighted as loudly as wins on purpose: the polyp that lost money is the most valuable row in the reef.",
+    stage: "Recall",
+    body: "Before reasoning, CORAL asks its own past what resembles this. Recall is a weighted blend of token overlap, exponential recency decay on a thirty-day half-life, outcome weight, symbol match, and shared tags. Losses are weighted as loudly as wins on purpose: the polyp that lost money is the most valuable row in the reef.",
     code: `score = 0.50·text + 0.22·recency + 0.18·outcome
       + 0.10·sameSymbol + 0.05·tags
 
 # coral reef 'NVDA oversold' --why
-# • 4e89b847  text 0.34, same symbol, loss → 1.00`,
+# 4e89b847  text 0.34, same symbol, loss → 1.00`,
   },
   {
-    id: "reason",
-    title: "Reason",
-    tag: "model or heuristic",
-    body: "With a key, one structured call per basket: the model sees reef state, every observation, and the recalled polyps verbatim, and must return a typed decision per symbol. Without a key — or if the call fails — a deterministic heuristic decides instead. It scores mean reversion, trend continuation, reef bias, overbought penalty, volatility penalty, and a scar penalty when recall contains two losses. Same pipeline downstream either way.",
-    code: `if (rsi14 < 35 && momentum20 > 0)      score += 0.40
+    stage: "Reason",
+    body: "With a key, one structured call per basket. The model sees reef state, every observation, and the recalled polyps verbatim, and returns a typed decision per symbol. Without a key, or if the call fails, a deterministic heuristic decides instead. It scores mean reversion, trend continuation, reef bias, an overbought penalty, a volatility penalty, and a scar penalty when recall contains two losses. The pipeline downstream is identical.",
+    code: `if (rsi14 < 35 && momentum20 > 0)       score += 0.40
 if (momentum20 > 0.015 && price > sma20) score += 0.30
-if (bias < -0.2)                        score -= 0.25
-if (lossesInRecall >= 2)                score -= 0.20  // scarred
+if (bias < -0.2)                         score -= 0.25
+if (lossesInRecall >= 2)                 score -= 0.20  // scarred
 
 action = score >= 0.25 ? "buy" : "hold"`,
   },
   {
-    id: "gate",
-    title: "Gate",
-    tag: "deterministic",
-    body: "The risk manager runs after the model has spoken and before anything touches a venue. It is not a prompt, so the model cannot argue with it. Every check returns a reason string: a rejection without a justification is useless to whoever reads the reef later. The gate can also scale an order down instead of refusing it, and records what it scaled from.",
-    code: `confidence 0.68 ≥ minConfidence 0.55          ✓
-notional 250 ≤ maxOrderUsd 250                ✓
-deployed 300 + 250 ≤ maxDeployedUsd 2500      ✓
-NVDA exposure 0 + 250 ≤ cap 625               ✓
-consecutiveLosses 0 < 4                       ✓
+    stage: "Gate",
+    body: "The risk manager runs after the model has spoken and before anything touches a venue. It is not a prompt, so the model cannot argue with it. Every check returns a reason string, because a rejection without a justification is useless to whoever reads the reef later. The gate can scale an order down instead of refusing it, and it records what it scaled from.",
+    code: `confidence 0.68 ≥ minConfidence 0.55          ok
+notional 250 ≤ maxOrderUsd 250                ok
+deployed 300 + 250 ≤ maxDeployedUsd 2500      ok
+NVDA exposure 0 + 250 ≤ cap 625               ok
+consecutiveLosses 0 < 4                       ok
 → allowed, notional $250.00`,
   },
   {
-    id: "settle",
-    title: "Settle",
-    tag: "feedback",
-    body: "Polyps older than an hour get judged by price. A buy polyp wins if the price moved up more than 1%, loses if it moved down more than 1%. A sell polyp is inverted. A hold polyp that correctly sat out a flat tape counts as a small win. This is the only place the reef learns from reality rather than from itself — which is why a minimum age exists: a decision cannot be graded the instant it is made.",
+    stage: "Settle",
+    body: "Polyps older than an hour get judged by price. A buy polyp wins if price moved up more than one percent and loses below minus one. A sell polyp is inverted. A hold has no position, so it realises nothing and settles neutral. That last rule matters: counting a flat tape as a win is how a reef ends up advertising a hundred percent on zero profit.",
     code: `move = (price - entry) / entry
 buy  → move >  0.01 ? "win" : move < -0.01 ? "loss" : "neutral"
 sell → move < -0.01 ? "win" : move >  0.01 ? "loss" : "neutral"
-hold → |move| < 0.01 ? "win" : "neutral"`,
+hold → "neutral"          // no position, no result`,
   },
   {
-    id: "calcify",
-    title: "Calcify",
-    tag: "memory write",
-    body: "Every decision from the pass becomes a polyp — including the ones the gate refused, which are tagged `gated` and hold the rejection reason in their artifacts. A pass that ends with a settlement also writes a reflection polyp summarising the W/L. Nothing is dropped for being embarrassing. That is the whole point of a reef.",
+    stage: "Calcify",
+    body: "Every decision from the pass becomes a polyp, including the ones the gate refused. Those are tagged gated and hold the rejection reason in their artifacts. A pass that settled older polyps also writes a reflection. Nothing is dropped for being embarrassing, which is the whole point of a reef.",
     code: `{ kind: "trade", action: "buy", confidence: 0.68,
   thesis: "BUY · rsi 31 · mom 4.3% · 24h 1.1% · 6 polyps recalled",
-  tags: ["mean-reversion","oversold","sanctioned"],
+  tags: ["mean-reversion", "oversold", "sanctioned"],
   outcome: "pending", pnl: 0,
   artifacts: { observation, recalled, gate, execution, runId } }`,
   },
 ];
 
+const FIELDS: [string, string][] = [
+  ["kind", "observation, decision, trade, reflection, or skill. Only decisions and trades are scored."],
+  ["agent", "which host made the call, so a Claude-shaped decision and a Codex-shaped one stay distinguishable."],
+  ["thesis", "the falsifiable sentence. Everything recall scores against lives here."],
+  ["confidence", "zero to one, and a hard gate input. Dishonest confidence gets sized down or refused."],
+  ["outcome, pnl", "filled in by settle. Never set at write time, because that would be marking your own homework."],
+  ["tags", "the zones. coral evolve groups by tag and reweights each zone by its smoothed win rate."],
+  ["artifacts", "frozen evidence: the observation, recall ids, the gate verdict, the execution. JSON, never re-derived."],
+];
+
 export default function HowItWorksPage() {
   return (
     <>
-      <Nav />
+      <Header />
       <main>
-        <section className="relative overflow-hidden border-b border-shelf/40">
-          <div className="glow-teal pointer-events-none absolute inset-x-0 -top-40 h-[440px] opacity-50" />
-          <div className="relative mx-auto w-full max-w-5xl px-6 py-20">
-            <p className="font-mono text-[0.68rem] uppercase tracking-[0.22em] text-teal">how it works</p>
-            <h1 className="mt-5 text-balance font-display text-[3rem] leading-[1.05] sm:text-[3.6rem]">
-              One pass. Six stages. A colony at the end of it.
+        <section className="border-b border-rule">
+          <div className="mx-auto max-w-[1220px] px-6 py-16 sm:px-10 sm:py-20">
+            <div className="flex items-center gap-4">
+              <MonogramSeal variant="cobalt" className="h-9 w-9" />
+              <p className="font-mono-code text-[10px] uppercase tracking-[0.18em] text-cobalt">How it works</p>
+            </div>
+            <h1 className="mt-6 max-w-[900px] font-serif-display text-[36px] font-normal uppercase leading-[0.94] tracking-[-0.015em] text-ink sm:text-[54px] md:text-[62px]">
+              One pass,
+              <br />
+              six stages,
+              <br />
+              a colony at the end
             </h1>
-            <p className="mt-6 max-w-2xl text-pretty text-[1rem] leading-relaxed text-mist">
-              The whole engine is a LangGraph state graph compiled with a checkpointer, so every pass has a thread id
-              you can resume and every stage emits a typed event. Nothing below is metaphorical — the code snippets are
-              the actual logic, abbreviated.
+            <p className="mt-6 max-w-[540px] font-serif-editorial text-[15px] italic leading-[1.4] text-ink/80">
+              The engine is a LangGraph state graph compiled with a checkpointer, so every pass has a thread id you
+              can resume and every stage emits a typed event. The snippets below are the actual logic, abbreviated.
             </p>
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-5xl px-6 py-20">
-          <div className="relative space-y-16">
-            <div className="absolute bottom-0 left-[11px] top-2 hidden w-px bg-shelf/60 sm:block" />
+        <section className="mx-auto max-w-[1220px] px-6 py-16 sm:px-10">
+          <div className="space-y-12">
             {STAGES.map((s, i) => (
-              <div key={s.id} className="relative grid gap-8 sm:grid-cols-[auto_1fr]">
-                <div className="hidden sm:block">
-                  <div className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border border-coral/40 bg-abyss">
-                    <span className="h-1.5 w-1.5 rounded-full bg-coral" />
-                  </div>
-                </div>
+              <div key={s.stage} className="grid gap-8 border-t border-rule pt-10 lg:grid-cols-[0.85fr_1.15fr]">
                 <div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="font-mono text-[0.68rem] text-silt">0{i + 1}</span>
-                    <h2 className="font-display text-[1.75rem] leading-tight text-foam">{s.title}</h2>
-                    <span className="rounded-full border border-shelf px-2.5 py-0.5 font-mono text-[0.64rem] uppercase tracking-[0.12em] text-silt">
-                      {s.tag}
-                    </span>
-                  </div>
-                  <p className="mt-4 max-w-3xl text-pretty text-[0.9rem] leading-relaxed text-mist">{s.body}</p>
-                  <div className="mt-5 overflow-hidden rounded-lg border border-shelf/80 bg-deep">
-                    <pre className="overflow-x-auto px-4 py-3.5 font-mono text-[0.73rem] leading-relaxed text-mist">
-                      <code>{s.code}</code>
-                    </pre>
-                  </div>
+                  <span className="font-mono-code text-[10.5px] text-cobalt">0{i + 1}</span>
+                  <h2 className="mt-2 font-serif-display text-[35px] font-normal uppercase leading-[0.95] tracking-[-0.015em] text-ink sm:text-[44px]">
+                    {s.stage}
+                  </h2>
+                  <p className="mt-4 max-w-[440px] font-sans-clean text-[12px] font-medium leading-[1.45] text-ink sm:text-[12.5px]">
+                    {s.body}
+                  </p>
+                </div>
+                <div className="overflow-hidden border border-rule-cobalt bg-[#F8F9FE]">
+                  <pre className="overflow-x-auto px-4 py-4 font-mono-code text-[11px] leading-[1.75] text-ink">
+                    <code>{s.code}</code>
+                  </pre>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="border-y border-shelf/40 bg-deep/40">
-          <div className="mx-auto w-full max-w-5xl px-6 py-20">
-            <h2 className="font-display text-[2rem] leading-tight">What a polyp actually is</h2>
-            <p className="mt-4 max-w-3xl text-pretty text-[0.9rem] leading-relaxed text-mist">
-              One row in SQLite. Zod-validated on the way in, append-only in spirit: a polyp is never rewritten to look
-              sharper in hindsight. Only <code className="rounded bg-shelf/60 px-1.5 py-0.5 font-mono text-[0.85em] text-coral">outcome</code>{" "}
-              and <code className="rounded bg-shelf/60 px-1.5 py-0.5 font-mono text-[0.85em] text-coral">pnl</code> are
-              filled in later, when the market has judged it.
+        <section className="border-y border-rule bg-[#F8F9FE]">
+          <div className="mx-auto max-w-[1220px] px-6 py-16 sm:px-10">
+            <h2 className="font-serif-editorial text-[22px] font-normal tracking-[-0.01em] text-cobalt sm:text-[26px]">
+              What a polyp actually is
+            </h2>
+            <p className="mt-5 max-w-[560px] font-sans-clean text-[11.5px] font-medium leading-[1.45] text-ink">
+              One row in SQLite, Zod-validated on the way in and append-only in spirit. A polyp is never rewritten
+              to look sharper in hindsight. Only outcome and pnl are filled in later, when the market has judged it.
             </p>
 
-            <div className="mt-8 overflow-hidden rounded-xl border border-shelf/60">
-              <table className="w-full text-left text-[0.84rem]">
-                <thead className="bg-deep/80 font-mono text-[0.64rem] uppercase tracking-[0.14em] text-silt">
-                  <tr>
-                    <th className="px-5 py-3 font-normal">field</th>
-                    <th className="px-5 py-3 font-normal">why it is there</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-shelf/40">
-                  {[
-                    ["kind", "observation · decision · trade · reflection · skill. Only decisions and trades are scored."],
-                    ["agent", "Which host made the call, so a Claude-shaped decision and a Codex-shaped one stay distinguishable."],
-                    ["thesis", "The falsifiable sentence. Everything recall scores against lives here."],
-                    ["confidence", "0..1, and a hard gate input. Dishonest confidence gets sized down or refused."],
-                    ["outcome + pnl", "Filled in by `settle`. Never set at write time — that would be marking your own homework."],
-                    ["tags", "The zones. `coral evolve` groups by tag and reweights each zone by its smoothed win rate."],
-                    ["artifacts", "Frozen evidence: the observation, recall ids, the gate verdict, the execution. JSON, never re-derived."],
-                  ].map(([field, why]) => (
-                    <tr key={field} className="align-top">
-                      <td className="whitespace-nowrap px-5 py-3.5 font-mono text-[0.76rem] text-coral">{field}</td>
-                      <td className="px-5 py-3.5 text-mist">{why}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="mt-8 border border-rule-cobalt bg-white">
+              {FIELDS.map(([field, why]) => (
+                <div key={field} className="grid gap-1 border-b border-rule px-5 py-3.5 last:border-0 sm:grid-cols-[auto_1fr] sm:gap-6">
+                  <code className="font-mono-code text-[11px] text-cobalt">{field}</code>
+                  <span className="font-sans-clean text-[11.5px] leading-relaxed text-ink/85">{why}</span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-5xl px-6 py-20">
+        <section className="mx-auto max-w-[1220px] px-6 py-16 sm:px-10">
           <div className="grid gap-12 lg:grid-cols-2">
             <div>
-              <h2 className="font-display text-[2rem] leading-tight">What &ldquo;evolve&rdquo; changes</h2>
-              <div className="mt-5 space-y-4 text-pretty text-[0.9rem] leading-relaxed text-mist">
+              <h2 className="font-serif-editorial text-[22px] font-normal tracking-[-0.01em] text-cobalt sm:text-[26px]">
+                What evolving changes
+              </h2>
+              <div className="mt-5 space-y-4 font-sans-clean text-[12px] font-medium leading-[1.5] text-ink">
                 <p>
-                  It reweights routing. Each zone (tag) gets a Laplace-smoothed win rate —{" "}
-                  <code className="rounded bg-shelf/60 px-1.5 py-0.5 font-mono text-[0.85em] text-foam">(wins+1)/(decided+2)</code>{" "}
-                  — so three lucky wins don&apos;t read as a 100% edge. Zones above{" "}
-                  <span className="text-foam">0.60</span> are promoted, below{" "}
-                  <span className="text-foam">0.42</span> demoted, and a zone with five losses and zero wins is retired.
+                  It reweights routing. Each zone gets a Laplace-smoothed win rate, (wins+1)/(decided+2), so three
+                  lucky wins do not read as a hundred percent edge. Zones above 0.60 are promoted, below 0.42
+                  demoted, and a zone with five losses and no wins is retired.
                 </p>
                 <p>
-                  Demoted does not mean deleted. A demoted skill still routes; it just loses ties to a stronger one.
-                  The reef reweights, it doesn&apos;t forget.
+                  Demoted does not mean deleted. A demoted skill still routes, it just loses ties to a stronger one.
+                  The reef reweights, it does not forget.
                 </p>
-                <p className="border-l-2 border-teal/50 pl-5 text-foam">
-                  It is deliberately not self-modifying. There is no prompt that rewrites the prompt, no generated code
-                  that gets promoted to production. A trading agent that can edit its own rules is a liability, not an
-                  achievement.
+                <p className="border-l-2 border-cobalt pl-4">
+                  It is deliberately not self-modifying. No prompt rewrites the prompt, no generated code gets
+                  promoted to production. A trading agent that can edit its own rules is a liability.
                 </p>
               </div>
             </div>
+
             <div className="space-y-4">
-              <div className="overflow-hidden rounded-lg border border-shelf/80 bg-deep">
-                <div className="border-b border-shelf/60 px-4 py-2 font-mono text-[0.66rem] text-silt">coral evolve</div>
-                <pre className="overflow-x-auto px-4 py-4 font-mono text-[0.73rem] leading-relaxed text-mist">
+              <div className="overflow-hidden border border-rule-cobalt bg-[#F8F9FE]">
+                <div className="border-b border-rule-cobalt px-4 py-2 font-mono-code text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
+                  coral evolve
+                </div>
+                <pre className="overflow-x-auto px-4 py-4 font-mono-code text-[11px] leading-[1.7] text-ink">
                   <code>{`Evolution · generation 2
-──────────────────────────────
   promoted   momentum, mean-reversion
   demoted    overbought-chase
-  retired    —
+  retired    -
 
 Notes
-  · promoted: momentum, mean-reversion — earning
-    more weight in routing
-  · demoted: overbought-chase — still routes,
-    but loses ties
-
-  ✓ generation 2: 2 promoted, 1 demoted, 0 retired
-    across 5 judged zones (win rate 58.3%)`}</code>
+  · promoted: momentum, mean-reversion
+  · demoted: overbought-chase, still routes
+    but loses ties`}</code>
                 </pre>
               </div>
-              <div className="overflow-hidden rounded-lg border border-shelf/80 bg-deep">
-                <div className="border-b border-shelf/60 px-4 py-2 font-mono text-[0.66rem] text-silt">
-                  the honest failure mode
+
+              <div className="overflow-hidden border border-rule-cobalt bg-white">
+                <div className="border-b border-rule-cobalt px-4 py-2 font-mono-code text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
+                  the honest failure
                 </div>
-                <pre className="overflow-x-auto px-4 py-4 font-mono text-[0.73rem] leading-relaxed text-mist">
+                <pre className="overflow-x-auto px-4 py-4 font-mono-code text-[11px] leading-[1.7] text-ink">
                   <code>{`$ coral evolve
 
 Evolution · generation 2
-  promoted   —
-  demoted    —
+  promoted   -
+  demoted    -
 
 Notes
-  · not enough evidence yet: 3 zones, none with
-    3+ polyps. Reef needs more decisions before
-    it can be judged.
-
-  dry run — nothing written.`}</code>
+  · not enough evidence yet: 3 zones, none
+    with 3+ polyps. Reef needs more decisions
+    before it can be judged.`}</code>
                 </pre>
               </div>
             </div>
           </div>
 
-          <div className="mt-16 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-shelf/60 bg-deep/50 p-6">
-            <p className="text-pretty text-[0.9rem] text-mist">
+          <div className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-rule pt-8">
+            <p className="max-w-[520px] font-serif-editorial text-[17px] italic leading-[1.35] text-ink/80">
               Next: what stops this from being a very eloquent way to lose money.
             </p>
-            <Link href="/safety" className="group inline-flex items-center gap-2 text-[0.86rem] text-coral hover:text-foam">
-              Safety &amp; risk
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            <Link
+              href="/safety"
+              className="inline-flex items-center gap-2 border border-rule-cobalt px-6 py-2.5 font-sans-clean text-[10px] font-medium uppercase tracking-[0.12em] text-ink transition-colors hover:border-cobalt hover:bg-cobalt hover:text-white"
+            >
+              Safety and risk
+              <DiagonalArrow className="h-3.5 w-3.5" />
             </Link>
           </div>
         </section>
