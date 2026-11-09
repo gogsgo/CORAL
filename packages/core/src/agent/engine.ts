@@ -587,18 +587,28 @@ export class CoralEngine {
     if (s.settled.length > 0) {
       const wins = s.settled.filter((x) => x.outcome === "win").length;
       const losses = s.settled.filter((x) => x.outcome === "loss").length;
+      const held = s.settled.filter((x) => x.outcome === "neutral").length;
+      const net = Number(s.settled.reduce((sum, x) => sum + x.pnl, 0).toFixed(2));
+
+      // A settlement with no graded trades is not a result. Saying "Reef is
+      // holding" after 0W/0L would be encouragement with no evidence behind it.
+      const verdict =
+        wins + losses === 0
+          ? `settled ${s.settled.length} polyps, none graded — ${held} neutral. No evidence either way.`
+          : `settled ${s.settled.length} polyps: ${wins}W / ${losses}L, net ${net >= 0 ? "+" : ""}$${net.toFixed(2)}. ${
+              losses > wins ? "Pattern is not holding — tighten, do not widen." : "Reef is holding. Stay the course."
+            }`;
+
       grown.push(
         this.deps.memory.grow({
           kind: "reflection",
           agent: "coral",
           symbol: null,
-          thesis: `settled ${s.settled.length} polyps: ${wins}W / ${losses}L. ${
-            losses > wins ? "Pattern is not holding — tighten, do not widen." : "Reef is holding. Stay the course."
-          }`,
+          thesis: verdict,
           action: "hold",
           confidence: 0.6,
-          outcome: losses > wins ? "loss" : wins > 0 ? "win" : "neutral",
-          pnl: Number(s.settled.reduce((sum, x) => sum + x.pnl, 0).toFixed(2)),
+          outcome: wins + losses === 0 ? "neutral" : losses > wins ? "loss" : "win",
+          pnl: net,
           tags: ["reflection", "settlement"],
           artifacts: { runId: s.runId, settled: s.settled },
         }),

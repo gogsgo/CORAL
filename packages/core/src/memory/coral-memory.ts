@@ -29,8 +29,10 @@ import {
 } from "./types.js";
 import { blend } from "./similarity.js";
 
-const SCHEMA = `
-CREATE TABLE IF NOT EXISTS polyps (
+/** Tags that describe machinery, not strategy — never scored as zones. */
+const BOOKKEEPING_TAGS = new Set(["sanctioned", "gated", "reflection", "settlement"]);
+
+const SCHEMA = `CREATE TABLE IF NOT EXISTS polyps (
   id         TEXT PRIMARY KEY,
   kind       TEXT NOT NULL,
   agent      TEXT NOT NULL,
@@ -343,7 +345,10 @@ export class CoralMemory {
   zones(): Zone[] {
     const rows = this.db
       .prepare<[], { tags: string; outcome: string; created_at: string }>(
-        "SELECT tags, outcome, created_at FROM polyps WHERE kind IN ('decision','trade','reflection')",
+        // Only polyps that the market actually graded belong in a zone.
+        // Reflections are meta-notes about a pass; counting them would let
+        // "settlement" promote itself to a strong trading zone on zero trades.
+        "SELECT tags, outcome, created_at FROM polyps WHERE kind IN ('decision','trade')",
       )
       .all();
 
@@ -351,6 +356,10 @@ export class CoralMemory {
     for (const row of rows) {
       const tags = JSON.parse(row.tags) as string[];
       for (const tag of tags) {
+        // Bookkeeping tags record what the machinery did, not what the strategy
+        // believed. "sanctioned" only ever means "the gate let it through", so
+        // letting it earn routing weight would reward compliance, not edge.
+        if (BOOKKEEPING_TAGS.has(tag)) continue;
         const zone = acc.get(tag) ?? { name: tag, polyps: 0, wins: 0, losses: 0, strength: 0, lastSeen: null };
         zone.polyps++;
         if (row.outcome === "win") zone.wins++;

@@ -356,6 +356,26 @@ test("a hold polyp settles neutral, never as a free win", async () => {
   mem.close();
 });
 
+test("bookkeeping tags never become scored zones", () => {
+  const mem = new CoralMemory(join(home, "zones.db"));
+  const p = mem.grow({
+    kind: "trade",
+    agent: "coral",
+    symbol: "Z",
+    thesis: "momentum entry",
+    action: "buy",
+    confidence: 0.7,
+    tags: ["momentum", "sanctioned", "gated", "reflection", "settlement"],
+  });
+  mem.resolve(p.id, "win", 3);
+  const names = mem.zones().map((z) => z.name);
+  assert.ok(names.includes("momentum"), `real zone missing: ${names.join(",")}`);
+  for (const bogus of ["sanctioned", "gated", "reflection", "settlement"]) {
+    assert.ok(!names.includes(bogus), `${bogus} must not be a scored zone`);
+  }
+  mem.close();
+});
+
 // ── report ────────────────────────────────────────────────────────────────
 await Promise.all(pending);
 
@@ -366,7 +386,7 @@ for (const r of results) {
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
 
 // SQLite keeps the WAL mapping open on Windows; flush before unlinking.
-for (const db of ["reef.db", "young.db", "evo.db", "engine.db", "cap.db", "hold.db"]) {
+for (const db of ["reef.db", "young.db", "evo.db", "engine.db", "cap.db", "hold.db", "zones.db"]) {
   try {
     const { default: Database } = await import("better-sqlite3");
     const d = new Database(join(home, db));
